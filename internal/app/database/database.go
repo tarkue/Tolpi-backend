@@ -5,22 +5,22 @@ import (
 	"log"
 	"time"
 
+	"github.com/tarkue/tolpi-backend/config"
+	"github.com/tarkue/tolpi-backend/internal/app/graph/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-
-	"github.com/tarkue/tolpi-backend/graph/model"
 )
 
 type DB struct {
 	client *mongo.Client
 }
 
-func Connect() *DB {
+func New() *DB {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:27017"))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(config.DataBaseUri))
 	if err != nil {
 		log.Fatal(err)
 	}

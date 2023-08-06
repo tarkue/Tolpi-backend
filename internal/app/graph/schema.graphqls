@@ -5,11 +5,13 @@ type Tolpi {
   user: User!
 }
 
+
 type User {
   _id: ID!
   userId: String!
   firstName: String!
   lastName: String!
+  trackerList: [String!]!
 }
 
 type Query {

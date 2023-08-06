@@ -7,11 +7,11 @@ package graph
 import (
 	"context"
 
-	"github.com/tarkue/tolpi-backend/database"
-	"github.com/tarkue/tolpi-backend/graph/model"
+	"github.com/tarkue/tolpi-backend/internal/app/database"
+	"github.com/tarkue/tolpi-backend/internal/app/graph/model"
 )
 
-var db = database.Connect()
+var db = database.New()
 var ActualTolpi = &model.Tolpi{}
 
 // CreateUser is the resolver for the createUser field.

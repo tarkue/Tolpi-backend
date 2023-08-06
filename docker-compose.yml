@@ -1,0 +1,29 @@
+version: "3.9" 
+services:
+  mongo-tolpi:
+    image: 'mongo:latest'
+    container_name: 'mongo-tolpi'
+    ports:
+      - '27017:27017'
+    volumes:
+      - ./data/dev/mongo:/data/db
+    
+    healthcheck:
+      test: mongosh --eval 'db.runCommand("ping").ok' --quiet
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 1s
+    
+  tolpi:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: "8080"
+      MONGODB_URI: "mongodb://mongo:27017"
+      VK_SERVICE_TOKEN: "d1e3cb79d1e3cb79d1e3cb792dd2f6c27bdd1e3d1e3cb79b55e8638bbcee6776f69e90c"
+      
+    depends_on:
+      mongo-tolpi:
+        condition: service_healthy
