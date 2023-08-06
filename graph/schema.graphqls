@@ -1,0 +1,38 @@
+type Tolpi {
+  _id: ID!
+  text: String!
+  timestamp: Int!
+  user: User!
+}
+
+type User {
+  _id: ID!
+  userId: String!
+  firstName: String!
+  lastName: String!
+}
+
+type Query {
+  Tolpies: [Tolpi!]!
+  User(userId: String!): User!
+}
+
+input NewUser {
+  userId: String!
+  firstName: String!
+  lastName: String!
+}
+
+input NewTolpi {
+  text: String!
+  userId: String!
+}
+
+type Mutation {
+  createUser(input: NewUser!): User!
+  createTolpi(input: NewTolpi!): Tolpi!
+}
+
+type Subscription {
+  Tolpies: [Tolpi!]!
+}
