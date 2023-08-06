@@ -40,10 +40,11 @@ func (db *DB) CreateUser(input *model.NewUser) *model.User {
 	}
 
 	return &model.User{
-		ID:        res.InsertedID.(primitive.ObjectID).Hex(),
-		UserID:    input.UserID,
-		FirstName: input.FirstName,
-		LastName:  input.LastName,
+		ID:          res.InsertedID.(primitive.ObjectID).Hex(),
+		UserID:      input.UserID,
+		FirstName:   input.FirstName,
+		LastName:    input.LastName,
+		TrackerList: []string{},
 	}
 }
 

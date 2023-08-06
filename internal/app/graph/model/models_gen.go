@@ -21,8 +21,9 @@ type Tolpi struct {
 }
 
 type User struct {
-	ID        string `json:"_id"`
-	UserID    string `json:"userId"`
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
+	ID          string   `json:"_id"`
+	UserID      string   `json:"userId"`
+	FirstName   string   `json:"firstName"`
+	LastName    string   `json:"lastName"`
+	TrackerList []string `json:"trackerList"`
 }
