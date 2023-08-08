@@ -12,12 +12,14 @@ import (
 	"github.com/tarkue/tolpi-backend/internal/app/database"
 	"github.com/tarkue/tolpi-backend/internal/app/endpoint"
 	"github.com/tarkue/tolpi-backend/internal/app/graph"
+	"github.com/tarkue/tolpi-backend/internal/app/middlewares"
 )
 
 type App struct {
-	e    *endpoint.Endpoint
-	db   *database.DB
-	echo *echo.Echo
+	e          *endpoint.Endpoint
+	db         *database.DB
+	middleware *middlewares.Middlewares
+	echo       *echo.Echo
 }
 
 func New() (*App, error) {
@@ -27,29 +29,27 @@ func New() (*App, error) {
 
 	a.db = DataBase
 
+	a.middleware = middlewares.New()
+
 	a.e = endpoint.New(a.db)
 
 	a.echo = echo.New()
 
+	a.echo.Use(a.middleware.Authorization)
 	a.echo.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
 	}))
 
-	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
-	playground := playground.Handler("GraphQL playground", "/query")
-
-	a.echo.GET("/", func(c echo.Context) error {
-		playground.ServeHTTP(c.Response(), c.Request())
-		return nil
-	})
 	a.echo.GET("/getStatus", a.e.GetStatus)
 	a.echo.GET("/getCountry", a.e.GetCountry)
+	a.echo.POST("/subscribe", a.e.Subscribe)
+	a.echo.POST("/unsubscribe", a.e.Unsubscribe)
 
-	a.echo.POST("/query", func(c echo.Context) error {
-		srv.ServeHTTP(c.Response(), c.Request())
-		return nil
-	})
+	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
+
+	a.echo.GET("/", echo.WrapHandler(playground.Handler("GraphQL playground", "/query")))
+	a.echo.Any("/query", echo.WrapHandler(srv))
 
 	return a, nil
 

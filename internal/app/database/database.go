@@ -73,6 +73,16 @@ func (db *DB) CreateTolpi(input *model.NewTolpi) *model.Tolpi {
 	return tolpi
 }
 
+func (db *DB) UpdateUserTrackers(userID string, trackers []string) {
+	collection := db.client.Database("Tolpi").Collection("Users")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	_, err := collection.UpdateOne(ctx, bson.M{"userid": userID}, bson.M{"$set": bson.M{"trackerlist": trackers}})
+	if err != nil {
+		log.Fatal(err)
+	}
+}
 func (db *DB) FindUserById(userID string) *model.User {
 	collection := db.client.Database("Tolpi").Collection("Users")
 
