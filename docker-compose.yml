@@ -20,7 +20,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      PORT: "8080"
+      PORT: "8000"
       MONGODB_URI: "mongodb://mongo:27017"
       VK_SERVICE_TOKEN: "d1e3cb79d1e3cb79d1e3cb792dd2f6c27bdd1e3d1e3cb79b55e8638bbcee6776f69e90c"
       
