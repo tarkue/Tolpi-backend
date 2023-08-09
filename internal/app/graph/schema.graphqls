@@ -3,11 +3,13 @@ type Tolpi {
   text: String!
   timestamp: Int!
   user: User!
+  country: String!
 }
 
 
 type User {
   _id: ID!
+  avatar: String!
   userId: String!
   firstName: String!
   lastName: String!
@@ -15,12 +17,13 @@ type User {
 }
 
 type Query {
-  Tolpies: [Tolpi!]!
+  Tolpies(country: String!): [Tolpi!]!
   User(userId: String!): User!
 }
 
 input NewUser {
   userId: String!
+  avatar: String!
   firstName: String!
   lastName: String!
 }
@@ -28,6 +31,7 @@ input NewUser {
 input NewTolpi {
   text: String!
   userId: String!
+  country: String!
 }
 
 type Mutation {
@@ -36,5 +40,5 @@ type Mutation {
 }
 
 type Subscription {
-  Tolpies: [Tolpi!]!
+  Tolpies(userId: String!): [Tolpi!]!
 }

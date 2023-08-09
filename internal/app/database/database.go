@@ -41,6 +41,7 @@ func (db *DB) CreateUser(input *model.NewUser) *model.User {
 
 	return &model.User{
 		ID:          res.InsertedID.(primitive.ObjectID).Hex(),
+		Avatar:      input.Avatar,
 		UserID:      input.UserID,
 		FirstName:   input.FirstName,
 		LastName:    input.LastName,
@@ -64,6 +65,7 @@ func (db *DB) CreateTolpi(input *model.NewTolpi) *model.Tolpi {
 		Text:      input.Text,
 		Timestamp: int(time.Now().Unix()),
 		User:      &user,
+		Country:   input.Country,
 	}
 	_, err := collection.InsertOne(ctx, tolpi)
 
@@ -71,6 +73,39 @@ func (db *DB) CreateTolpi(input *model.NewTolpi) *model.Tolpi {
 		log.Fatal(err)
 	}
 	return tolpi
+}
+
+func (db *DB) UpdateUserAvatar(userID string, avatar string) {
+	collection := db.client.Database("Tolpi").Collection("Users")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	_, err := collection.UpdateOne(ctx, bson.M{"userid": userID}, bson.M{"$set": bson.M{"avatar": avatar}})
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func (db *DB) UpdateUserFirstName(userID string, firstName string) {
+	collection := db.client.Database("Tolpi").Collection("Users")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	_, err := collection.UpdateOne(ctx, bson.M{"userid": userID}, bson.M{"$set": bson.M{"firstname": firstName}})
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func (db *DB) UpdateUserLastName(userID string, lastName string) {
+	collection := db.client.Database("Tolpi").Collection("Users")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	_, err := collection.UpdateOne(ctx, bson.M{"userid": userID}, bson.M{"$set": bson.M{"lastname": lastName}})
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func (db *DB) UpdateUserTrackers(userID string, trackers []string) {
@@ -96,7 +131,7 @@ func (db *DB) FindUserById(userID string) *model.User {
 	return &user
 }
 
-func (db *DB) GetLastTolpies() []*model.Tolpi {
+func (db *DB) GetLastTolpies(country string) []*model.Tolpi {
 	collection := db.client.Database("Tolpi").Collection("Tolpies")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -104,7 +139,7 @@ func (db *DB) GetLastTolpies() []*model.Tolpi {
 	opts := options.Find().SetLimit(80).SetSort(bson.M{"$natural": -1})
 
 	var tolpies []*model.Tolpi
-	res, err := collection.Find(ctx, bson.M{}, opts)
+	res, err := collection.Find(ctx, bson.M{"country": country}, opts)
 
 	if err != nil {
 		log.Fatal(err)
@@ -120,4 +155,29 @@ func (db *DB) GetLastTolpies() []*model.Tolpi {
 	}
 
 	return tolpies
+}
+
+func (db *DB) GetSubscribes(userID string) []*model.User {
+	collection := db.client.Database("Tolpi").Collection("Users")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	res, err := collection.Find(ctx, bson.M{"trackerlist": userID})
+	if err != nil {
+		log.Fatal(err)
+		return nil
+	}
+
+	var users []*model.User
+	for res.Next(ctx) {
+		var user *model.User
+
+		err = res.Decode(&user)
+		if err != nil {
+			log.Fatal(err)
+		}
+		users = append(users, user)
+	}
+
+	return users
 }

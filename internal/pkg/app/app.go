@@ -13,9 +13,11 @@ import (
 	"github.com/tarkue/tolpi-backend/internal/app/endpoint"
 	"github.com/tarkue/tolpi-backend/internal/app/graph"
 	"github.com/tarkue/tolpi-backend/internal/app/middlewares"
+	"github.com/tarkue/tolpi-backend/internal/app/service"
 )
 
 type App struct {
+	s          *service.Service
 	e          *endpoint.Endpoint
 	db         *database.DB
 	middleware *middlewares.Middlewares
@@ -25,13 +27,14 @@ type App struct {
 func New() (*App, error) {
 	a := &App{}
 
+	a.s = service.New()
 	DataBase := database.New()
 
 	a.db = DataBase
 
-	a.middleware = middlewares.New()
+	a.middleware = middlewares.New(a.s)
 
-	a.e = endpoint.New(a.db)
+	a.e = endpoint.New(a.db, a.s)
 
 	a.echo = echo.New()
 
@@ -43,8 +46,14 @@ func New() (*App, error) {
 
 	a.echo.GET("/getStatus", a.e.GetStatus)
 	a.echo.GET("/getCountry", a.e.GetCountry)
+
+	a.echo.GET("/checkSubscribe", a.e.CheckSubscribe)
 	a.echo.POST("/subscribe", a.e.Subscribe)
 	a.echo.POST("/unsubscribe", a.e.Unsubscribe)
+
+	a.echo.POST("/setAvatar", a.e.SetAvatar)
+	a.echo.POST("/setFirstName", a.e.SetFirstName)
+	a.echo.POST("/setLastName", a.e.SetLastName)
 
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
 
@@ -57,7 +66,7 @@ func New() (*App, error) {
 
 func (a *App) Run() error {
 
-	err := a.echo.Start(config.ServerPort)
+	err := a.echo.Start("localhost:" + config.ServerPort)
 	if err != nil {
 		log.Fatal(err)
 	}

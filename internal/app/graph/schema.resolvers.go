@@ -6,6 +6,7 @@ package graph
 
 import (
 	"context"
+	"log"
 
 	"github.com/tarkue/tolpi-backend/internal/app/database"
 	"github.com/tarkue/tolpi-backend/internal/app/graph/model"
@@ -29,8 +30,8 @@ func (r *mutationResolver) CreateTolpi(ctx context.Context, input model.NewTolpi
 }
 
 // Tolpies is the resolver for the Tolpies field.
-func (r *queryResolver) Tolpies(ctx context.Context) ([]*model.Tolpi, error) {
-	return db.GetLastTolpies(), nil
+func (r *queryResolver) Tolpies(ctx context.Context, country string) ([]*model.Tolpi, error) {
+	return db.GetLastTolpies(country), nil
 }
 
 // User is the resolver for the User field.
@@ -39,21 +40,37 @@ func (r *queryResolver) User(ctx context.Context, userID string) (*model.User, e
 }
 
 // Tolpies is the resolver for the Tolpies field.
-func (r *subscriptionResolver) Tolpies(ctx context.Context) (<-chan []*model.Tolpi, error) {
+func (r *subscriptionResolver) Tolpies(ctx context.Context, userID string) (<-chan []*model.Tolpi, error) {
 	ch := make(chan []*model.Tolpi)
+
+	var usersId []string
+	users := db.GetSubscribes(userID)
+	if len(users) > 0 {
+		for i := 0; i < len(users); i++ {
+			usersId = append(usersId, users[i].UserID)
+		}
+	} else {
+		return ch, nil
+	}
+
+	log.Print(usersId)
 
 	var Tolpies []*model.Tolpi
 	go func() {
 		for {
-			if len(Tolpies) > 0 {
-				if Tolpies[len(Tolpies)-1] != ActualTolpi {
-					Tolpies = append(Tolpies, ActualTolpi)
-					ch <- Tolpies
-				}
-			} else {
-				if ActualTolpi.Text != "" {
-					Tolpies = append(Tolpies, ActualTolpi)
-					ch <- Tolpies
+			if ActualTolpi.Text != "" {
+				if len(Tolpies) > 0 {
+					if Contains(usersId, ActualTolpi.User.UserID) {
+						if Tolpies[len(Tolpies)-1] != ActualTolpi {
+							Tolpies = append(Tolpies, ActualTolpi)
+							ch <- Tolpies
+						}
+					}
+				} else {
+					if Contains(usersId, ActualTolpi.User.UserID) {
+						Tolpies = append(Tolpies, ActualTolpi)
+						ch <- Tolpies
+					}
 				}
 			}
 		}
@@ -75,3 +92,12 @@ func (r *Resolver) Subscription() SubscriptionResolver { return &subscriptionRes
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
+
+func Contains(a []string, x string) bool {
+	for _, n := range a {
+		if x == n {
+			return true
+		}
+	}
+	return false
+}

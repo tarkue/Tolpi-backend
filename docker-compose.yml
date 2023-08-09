@@ -1,23 +1,5 @@
 version: "3.9" 
 services:
-  nginx-proxy:
-    restart: always
-    image: jwilder/nginx-proxy
-    ports:
-      - "80:80"
-    volumes:
-      - "/etc/nginx/vhost.d"
-      - "/usr/share/nginx/html"
-      - "/var/run/docker.sock:/tmp/docker.sock:ro"
-      - "/etc/nginx/certs"
-
-  letsencrypt-nginx-proxy-companion:
-    restart: always
-    image: jrcs/letsencrypt-nginx-proxy-companion
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-    volumes_from:
-      - "nginx-proxy"
   mongo-tolpi:
     image: 'mongo:latest'
     container_name: 'mongo-tolpi'
@@ -36,9 +18,9 @@ services:
   tolpi:
     build: .
     ports:
-      - "80:80"
+      - "8080"
     environment:
-      PORT: "80"
+      PORT: "4000"
       MONGODB_URI: "mongodb://mongo:27017"
       VK_SERVICE_TOKEN: "d1e3cb79d1e3cb79d1e3cb792dd2f6c27bdd1e3d1e3cb79b55e8638bbcee6776f69e90c"
       VK_SECRET_KEY: "4GScw7G7MZcrBsOWcnKg"

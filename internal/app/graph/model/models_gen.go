@@ -3,12 +3,14 @@
 package model
 
 type NewTolpi struct {
-	Text   string `json:"text"`
-	UserID string `json:"userId"`
+	Text    string `json:"text"`
+	UserID  string `json:"userId"`
+	Country string `json:"country"`
 }
 
 type NewUser struct {
 	UserID    string `json:"userId"`
+	Avatar    string `json:"avatar"`
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
 }
@@ -18,10 +20,12 @@ type Tolpi struct {
 	Text      string `json:"text"`
 	Timestamp int    `json:"timestamp"`
 	User      *User  `json:"user"`
+	Country   string `json:"country"`
 }
 
 type User struct {
 	ID          string   `json:"_id"`
+	Avatar      string   `json:"avatar"`
 	UserID      string   `json:"userId"`
 	FirstName   string   `json:"firstName"`
 	LastName    string   `json:"lastName"`
