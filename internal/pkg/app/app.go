@@ -38,22 +38,16 @@ func New() (*App, error) {
 
 	a.echo = echo.New()
 
-	a.echo.Use(a.middleware.Authorization)
-	a.echo.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+        a.echo.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
-		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
-	}))
-
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, "Authorization"},
+	}), a.middleware.Authorization)
 	a.echo.GET("/getStatus", a.e.GetStatus)
 	a.echo.GET("/getCountry", a.e.GetCountry)
 
 	a.echo.GET("/checkSubscribe", a.e.CheckSubscribe)
 	a.echo.POST("/subscribe", a.e.Subscribe)
 	a.echo.POST("/unsubscribe", a.e.Unsubscribe)
-
-	a.echo.POST("/setAvatar", a.e.SetAvatar)
-	a.echo.POST("/setFirstName", a.e.SetFirstName)
-	a.echo.POST("/setLastName", a.e.SetLastName)
 
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
 
@@ -66,7 +60,7 @@ func New() (*App, error) {
 
 func (a *App) Run() error {
 
-	err := a.echo.Start("localhost:" + config.ServerPort)
+	err := a.echo.Start(":" + config.ServerPort)
 	if err != nil {
 		log.Fatal(err)
 	}

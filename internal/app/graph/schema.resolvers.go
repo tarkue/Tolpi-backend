@@ -10,6 +10,7 @@ import (
 
 	"github.com/tarkue/tolpi-backend/internal/app/database"
 	"github.com/tarkue/tolpi-backend/internal/app/graph/model"
+	usercontext "github.com/tarkue/tolpi-backend/internal/app/userContext"
 )
 
 var db = database.New()
@@ -17,12 +18,24 @@ var ActualTolpi = &model.Tolpi{}
 
 // CreateUser is the resolver for the createUser field.
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (*model.User, error) {
-	return db.CreateUser(&input), nil
+	userId := usercontext.ForContext(ctx).ID
+	User := db.CreateUser(&input, userId)
+
+	return User, nil
+}
+
+// SetCountry is the resolver for the setCountry field.
+func (r *mutationResolver) SetCountry(ctx context.Context, country string) (*model.User, error) {
+	userId := usercontext.ForContext(ctx).ID
+	User := db.UpdateUserCountry(userId, country)
+
+	return User, nil
 }
 
 // CreateTolpi is the resolver for the createTolpi field.
 func (r *mutationResolver) CreateTolpi(ctx context.Context, input model.NewTolpi) (*model.Tolpi, error) {
-	tolpi := db.CreateTolpi(&input)
+	user := usercontext.ForContext(ctx)
+	tolpi := db.CreateTolpi(&input, user.ID)
 
 	ActualTolpi = tolpi
 

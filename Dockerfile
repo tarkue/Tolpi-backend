@@ -19,7 +19,7 @@ COPY . .
 RUN go build -o main ./cmd/tolpi
 
 # Expose port 8080 to the outside world
-EXPOSE 8080
+EXPOSE 3000
 
 # Run the executable
 ENTRYPOINT ["./main"] 

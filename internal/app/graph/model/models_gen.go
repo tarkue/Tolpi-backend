@@ -4,12 +4,10 @@ package model
 
 type NewTolpi struct {
 	Text    string `json:"text"`
-	UserID  string `json:"userId"`
 	Country string `json:"country"`
 }
 
 type NewUser struct {
-	UserID    string `json:"userId"`
 	Avatar    string `json:"avatar"`
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
@@ -29,5 +27,6 @@ type User struct {
 	UserID      string   `json:"userId"`
 	FirstName   string   `json:"firstName"`
 	LastName    string   `json:"lastName"`
-	TrackerList []string `json:"trackerList"`
+	Country     *string  `json:"country,omitempty"`
+	TrackerList []string `json:"trackerList,omitempty"`
 }

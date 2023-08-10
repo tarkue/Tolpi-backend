@@ -12,9 +12,6 @@ import (
 
 type DataBase interface {
 	FindUserById(userID string) *model.User
-	UpdateUserAvatar(userID string, avatar string)
-	UpdateUserFirstName(userID string, firstName string)
-	UpdateUserLastName(userID string, lastName string)
 	UpdateUserTrackers(userID string, trackers []string)
 }
 
@@ -52,7 +49,7 @@ func (e *Endpoint) GetStatus(ctx echo.Context) error {
 	}
 	log.Print(link)
 
-	ctx.String(http.StatusOK, string(body))
+	ctx.JSON(http.StatusOK, string(body))
 	return nil
 }
 
@@ -116,45 +113,6 @@ func (e *Endpoint) Unsubscribe(ctx echo.Context) error {
 	NewSlice := e.s.RemoveIndex(user.TrackerList, e.s.IndexOf(userId, user.TrackerList))
 	e.db.UpdateUserTrackers(unsubId, NewSlice)
 
-	ctx.JSON(http.StatusOK, true)
-	return nil
-}
-
-func (e *Endpoint) SetAvatar(ctx echo.Context) error {
-	if !ctx.QueryParams().Has(avatarParam) {
-		ctx.String(http.StatusOK, notFoundMessage+avatarParam)
-		return nil
-	}
-	avatar := ctx.QueryParam(avatarParam)
-	userId := e.s.GetUserId(ctx)
-
-	e.db.UpdateUserAvatar(userId, avatar)
-	ctx.JSON(http.StatusOK, true)
-	return nil
-}
-
-func (e *Endpoint) SetFirstName(ctx echo.Context) error {
-	if !ctx.QueryParams().Has(firstNameParam) {
-		ctx.String(http.StatusOK, notFoundMessage+firstNameParam)
-		return nil
-	}
-	firstName := ctx.QueryParam(firstNameParam)
-	userId := e.s.GetUserId(ctx)
-
-	e.db.UpdateUserFirstName(userId, firstName)
-	ctx.JSON(http.StatusOK, true)
-	return nil
-}
-
-func (e *Endpoint) SetLastName(ctx echo.Context) error {
-	if !ctx.QueryParams().Has(lastNameParam) {
-		ctx.String(http.StatusOK, notFoundMessage+lastNameParam)
-		return nil
-	}
-	lastName := ctx.QueryParam(lastNameParam)
-	userId := e.s.GetUserId(ctx)
-
-	e.db.UpdateUserLastName(userId, lastName)
 	ctx.JSON(http.StatusOK, true)
 	return nil
 }

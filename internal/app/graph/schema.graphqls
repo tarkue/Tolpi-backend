@@ -13,7 +13,8 @@ type User {
   userId: String!
   firstName: String!
   lastName: String!
-  trackerList: [String!]!
+  country: String
+  trackerList: [String!]
 }
 
 type Query {
@@ -22,7 +23,6 @@ type Query {
 }
 
 input NewUser {
-  userId: String!
   avatar: String!
   firstName: String!
   lastName: String!
@@ -30,12 +30,13 @@ input NewUser {
 
 input NewTolpi {
   text: String!
-  userId: String!
   country: String!
 }
 
 type Mutation {
   createUser(input: NewUser!): User!
+  setCountry(country: String!): User!
+  
   createTolpi(input: NewTolpi!): Tolpi!
 }
 

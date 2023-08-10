@@ -8,7 +8,6 @@ import (
 	"github.com/tarkue/tolpi-backend/config"
 	"github.com/tarkue/tolpi-backend/internal/app/graph/model"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -29,34 +28,67 @@ func New() *DB {
 	}
 }
 
-func (db *DB) CreateUser(input *model.NewUser) *model.User {
+func (db *DB) CreateUser(input *model.NewUser, userId string) *model.User {
 	collection := db.client.Database("Tolpi").Collection("Users")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	res, err := collection.InsertOne(ctx, input)
-	if err != nil {
-		log.Fatal(err)
+
+	var findResult *model.User
+	res := collection.FindOne(ctx, bson.M{"userid": userId})
+
+	if res.Err() == nil {
+		res.Decode(&findResult)
+		if findResult.Avatar != input.Avatar ||
+			findResult.FirstName != input.FirstName ||
+			findResult.LastName != input.LastName {
+			_, err := collection.UpdateOne(
+				ctx, bson.M{"userid": userId},
+				bson.M{
+					"$set": bson.M{
+						"avatar":    input.Avatar,
+						"firstname": input.FirstName,
+						"lastname":  input.LastName,
+					},
+				},
+			)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+
+		res = collection.FindOne(ctx, bson.M{"userid": userId})
+		res.Decode(&findResult)
+
+		return findResult
+
 	}
 
-	return &model.User{
-		ID:          res.InsertedID.(primitive.ObjectID).Hex(),
+	user := &model.User{
 		Avatar:      input.Avatar,
-		UserID:      input.UserID,
+		UserID:      userId,
 		FirstName:   input.FirstName,
 		LastName:    input.LastName,
 		TrackerList: []string{},
 	}
+
+	_, err := collection.InsertOne(ctx, user)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return user
 }
 
-func (db *DB) CreateTolpi(input *model.NewTolpi) *model.Tolpi {
+func (db *DB) CreateTolpi(input *model.NewTolpi, userId string) *model.Tolpi {
 	collection := db.client.Database("Tolpi").Collection("Tolpies")
 	collectionUsers := db.client.Database("Tolpi").Collection("Users")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	findRes := collectionUsers.FindOne(ctx, bson.M{"userid": input.UserID})
+	findRes := collectionUsers.FindOne(ctx, bson.M{"userid": userId})
 
 	user := model.User{}
 	findRes.Decode(&user)
@@ -75,37 +107,22 @@ func (db *DB) CreateTolpi(input *model.NewTolpi) *model.Tolpi {
 	return tolpi
 }
 
-func (db *DB) UpdateUserAvatar(userID string, avatar string) {
+func (db *DB) UpdateUserCountry(userID string, country string) *model.User {
 	collection := db.client.Database("Tolpi").Collection("Users")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	_, err := collection.UpdateOne(ctx, bson.M{"userid": userID}, bson.M{"$set": bson.M{"avatar": avatar}})
+	_, err := collection.UpdateOne(ctx, bson.M{"userid": userID}, bson.M{"$set": bson.M{"country": country}})
 	if err != nil {
 		log.Fatal(err)
 	}
-}
 
-func (db *DB) UpdateUserFirstName(userID string, firstName string) {
-	collection := db.client.Database("Tolpi").Collection("Users")
+	findRes := collection.FindOne(ctx, bson.M{"userid": userID})
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	_, err := collection.UpdateOne(ctx, bson.M{"userid": userID}, bson.M{"$set": bson.M{"firstname": firstName}})
-	if err != nil {
-		log.Fatal(err)
-	}
-}
+	user := &model.User{}
+	findRes.Decode(&user)
 
-func (db *DB) UpdateUserLastName(userID string, lastName string) {
-	collection := db.client.Database("Tolpi").Collection("Users")
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	_, err := collection.UpdateOne(ctx, bson.M{"userid": userID}, bson.M{"$set": bson.M{"lastname": lastName}})
-	if err != nil {
-		log.Fatal(err)
-	}
+	return user
 }
 
 func (db *DB) UpdateUserTrackers(userID string, trackers []string) {
