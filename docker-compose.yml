@@ -3,6 +3,9 @@ services:
   mongo-tolpi:
     image: 'mongo:latest'
     container_name: 'mongo'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: "user"
+      MONGO_INITDB_ROOT_PASSWORD: "pass"
     ports:
       - '27017:27017'
     volumes:
@@ -20,8 +23,10 @@ services:
     environment:
       PORT: "3000"
       MONGODB_URI: "mongodb://mongo:27017"
-      VK_SERVICE_TOKEN: "d1e3cb79d1e3cb79d1e3cb792dd2f6c27bdd1e3d1e3cb79b55e8638bbcee6776f69e90c"
-      VK_SECRET_KEY: "4GScw7G7MZcrBsOWcnKg"
+      MONGODB_USERNAME: "user"
+      MONGODB_PASSWORD: "pass"
+      VK_SERVICE_TOKEN: "token"
+      VK_SECRET_KEY: "secret"
 
     depends_on:
       mongo-tolpi:

@@ -19,7 +19,13 @@ type DB struct {
 func New() *DB {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(config.DataBaseUri))
+
+	credential := options.Credential{
+		AuthMechanism: "SCRAM-SHA-256",
+		Username:      config.DataBaseUserName,
+		Password:      config.DataBasePassword,
+	}
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(config.DataBaseUri).SetAuth(credential))
 	if err != nil {
 		log.Fatal(err)
 	}
