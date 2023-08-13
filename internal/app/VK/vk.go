@@ -25,7 +25,7 @@ type UserGet struct {
 
 func GetUserVK(userId string) *UserGetResponse {
 
-	link := config.VkApiLink + config.VkUsersGetMethod + "?" + `access_token=` + config.VkServiceToken + `&user_ids=` + userId + `&fields=status,photo_100&v=5.131`
+	link := config.VkApiLink + config.VkUsersGetMethod + "?" + `access_token=` + config.VkServiceToken + `&user_ids=` + userId + `&fields=status,photo_100&v=5.131&lang=ru`
 
 	resp, err := http.Get(link)
 	if err != nil {
