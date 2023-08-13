@@ -35,7 +35,7 @@ func New() *DB {
 	}
 }
 
-func (db *DB) CreateUser(input *model.NewUser, userId string) *model.User {
+func (db *DB) CreateUser(userId string) *model.User {
 	collection := db.client.Database("Tolpi").Collection("Users")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -44,42 +44,22 @@ func (db *DB) CreateUser(input *model.NewUser, userId string) *model.User {
 	var findResult *model.User
 	res := collection.FindOne(ctx, bson.M{"userid": userId})
 
+	userVK := vk.GetUserVK(userId)
+
 	if res.Err() == nil {
 		res.Decode(&findResult)
-		if findResult.Avatar != input.Avatar ||
-			findResult.FirstName != input.FirstName ||
-			findResult.LastName != input.LastName {
-			_, err := collection.UpdateOne(
-				ctx, bson.M{"userid": userId},
-				bson.M{
-					"$set": bson.M{
-						"avatar":    input.Avatar,
-						"firstname": input.FirstName,
-						"lastname":  input.LastName,
-					},
-				},
-			)
-			if err != nil {
-				log.Fatal(err)
-			}
-		}
-
-		res = collection.FindOne(ctx, bson.M{"userid": userId})
-		res.Decode(&findResult)
-		findResult.Status = vk.GetUserStatus(userId)
-		findResult.Tolpies = db.GetUserTolpiesList(userId)
 
 		return findResult
 
 	}
 
 	user := &model.User{
-		Avatar:      input.Avatar,
+		Avatar:      &userVK.Photo,
 		UserID:      userId,
-		FirstName:   input.FirstName,
-		LastName:    input.LastName,
+		FirstName:   &userVK.FirstName,
+		LastName:    &userVK.LastName,
 		TrackerList: []string{},
-		Status:      vk.GetUserStatus(userId),
+		Status:      &userVK.Status,
 		Tolpies:     db.GetUserTolpiesList(userId),
 	}
 
@@ -153,9 +133,12 @@ func (db *DB) FindUserById(userID string) *model.User {
 	defer cancel()
 	res := collection.FindOne(ctx, bson.M{"userid": userID})
 
+	userVK := vk.GetUserVK(userID)
 	user := model.User{}
 	res.Decode(&user)
-	user.Status = vk.GetUserStatus(userID)
+	user.Status = &userVK.Status
+	user.FirstName = &userVK.FirstName
+	user.LastName = &userVK.LastName
 	user.Tolpies = db.GetUserTolpiesList(userID)
 
 	return &user

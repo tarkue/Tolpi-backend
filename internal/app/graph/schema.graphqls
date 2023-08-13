@@ -9,10 +9,10 @@ type Tolpi {
 
 type User {
   _id: ID!
-  avatar: String!
   userId: String!
-  firstName: String!
-  lastName: String!
+  avatar: String
+  firstName: String
+  lastName: String
   country: String
   status: String
   tolpies: [Tolpi!]
@@ -24,24 +24,18 @@ type Query {
   User(userId: String!): User!
 }
 
-input NewUser {
-  avatar: String!
-  firstName: String!
-  lastName: String!
-}
-
 input NewTolpi {
   text: String!
   country: String!
 }
 
 type Mutation {
-  createUser(input: NewUser!): User!
+  createUser: User!
   setCountry(country: String!): User!
   
   createTolpi(input: NewTolpi!): Tolpi!
 }
 
 type Subscription {
-  Tolpies(userId: String!): [Tolpi!]!
+  Tolpies: [Tolpi!]!
 }

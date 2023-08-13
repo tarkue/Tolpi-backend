@@ -49,7 +49,7 @@ type DirectiveRoot struct {
 type ComplexityRoot struct {
 	Mutation struct {
 		CreateTolpi func(childComplexity int, input model.NewTolpi) int
-		CreateUser  func(childComplexity int, input model.NewUser) int
+		CreateUser  func(childComplexity int) int
 		SetCountry  func(childComplexity int, country string) int
 	}
 
@@ -59,7 +59,7 @@ type ComplexityRoot struct {
 	}
 
 	Subscription struct {
-		Tolpies func(childComplexity int, userID string) int
+		Tolpies func(childComplexity int) int
 	}
 
 	Tolpi struct {
@@ -84,7 +84,7 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	CreateUser(ctx context.Context, input model.NewUser) (*model.User, error)
+	CreateUser(ctx context.Context) (*model.User, error)
 	SetCountry(ctx context.Context, country string) (*model.User, error)
 	CreateTolpi(ctx context.Context, input model.NewTolpi) (*model.Tolpi, error)
 }
@@ -93,7 +93,7 @@ type QueryResolver interface {
 	User(ctx context.Context, userID string) (*model.User, error)
 }
 type SubscriptionResolver interface {
-	Tolpies(ctx context.Context, userID string) (<-chan []*model.Tolpi, error)
+	Tolpies(ctx context.Context) (<-chan []*model.Tolpi, error)
 }
 
 type executableSchema struct {
@@ -128,12 +128,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Mutation_createUser_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.CreateUser(childComplexity, args["input"].(model.NewUser)), true
+		return e.complexity.Mutation.CreateUser(childComplexity), true
 
 	case "Mutation.setCountry":
 		if e.complexity.Mutation.SetCountry == nil {
@@ -176,12 +171,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Subscription_Tolpies_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Subscription.Tolpies(childComplexity, args["userId"].(string)), true
+		return e.complexity.Subscription.Tolpies(childComplexity), true
 
 	case "Tolpi.country":
 		if e.complexity.Tolpi.Country == nil {
@@ -290,7 +280,6 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	ec := executionContext{rc, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
 		ec.unmarshalInputNewTolpi,
-		ec.unmarshalInputNewUser,
 	)
 	first := true
 
@@ -439,21 +428,6 @@ func (ec *executionContext) field_Mutation_createTolpi_args(ctx context.Context,
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_createUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 model.NewUser
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNNewUser2githubᚗcomᚋtarkueᚋtolpiᚑbackendᚋgraphᚋmodelᚐNewUser(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_setCountry_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -514,21 +488,6 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
-func (ec *executionContext) field_Subscription_Tolpies_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["userId"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["userId"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field___Type_enumValues_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -581,7 +540,7 @@ func (ec *executionContext) _Mutation_createUser(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateUser(rctx, fc.Args["input"].(model.NewUser))
+		return ec.resolvers.Mutation().CreateUser(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -608,10 +567,10 @@ func (ec *executionContext) fieldContext_Mutation_createUser(ctx context.Context
 			switch field.Name {
 			case "_id":
 				return ec.fieldContext_User__id(ctx, field)
-			case "avatar":
-				return ec.fieldContext_User_avatar(ctx, field)
 			case "userId":
 				return ec.fieldContext_User_userId(ctx, field)
+			case "avatar":
+				return ec.fieldContext_User_avatar(ctx, field)
 			case "firstName":
 				return ec.fieldContext_User_firstName(ctx, field)
 			case "lastName":
@@ -627,17 +586,6 @@ func (ec *executionContext) fieldContext_Mutation_createUser(ctx context.Context
 			}
 			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_createUser_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
 	}
 	return fc, nil
 }
@@ -683,10 +631,10 @@ func (ec *executionContext) fieldContext_Mutation_setCountry(ctx context.Context
 			switch field.Name {
 			case "_id":
 				return ec.fieldContext_User__id(ctx, field)
-			case "avatar":
-				return ec.fieldContext_User_avatar(ctx, field)
 			case "userId":
 				return ec.fieldContext_User_userId(ctx, field)
+			case "avatar":
+				return ec.fieldContext_User_avatar(ctx, field)
 			case "firstName":
 				return ec.fieldContext_User_firstName(ctx, field)
 			case "lastName":
@@ -892,10 +840,10 @@ func (ec *executionContext) fieldContext_Query_User(ctx context.Context, field g
 			switch field.Name {
 			case "_id":
 				return ec.fieldContext_User__id(ctx, field)
-			case "avatar":
-				return ec.fieldContext_User_avatar(ctx, field)
 			case "userId":
 				return ec.fieldContext_User_userId(ctx, field)
+			case "avatar":
+				return ec.fieldContext_User_avatar(ctx, field)
 			case "firstName":
 				return ec.fieldContext_User_firstName(ctx, field)
 			case "lastName":
@@ -1069,7 +1017,7 @@ func (ec *executionContext) _Subscription_Tolpies(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Subscription().Tolpies(rctx, fc.Args["userId"].(string))
+		return ec.resolvers.Subscription().Tolpies(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1121,17 +1069,6 @@ func (ec *executionContext) fieldContext_Subscription_Tolpies(ctx context.Contex
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Tolpi", field.Name)
 		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Subscription_Tolpies_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return fc, err
 	}
 	return fc, nil
 }
@@ -1309,10 +1246,10 @@ func (ec *executionContext) fieldContext_Tolpi_user(ctx context.Context, field g
 			switch field.Name {
 			case "_id":
 				return ec.fieldContext_User__id(ctx, field)
-			case "avatar":
-				return ec.fieldContext_User_avatar(ctx, field)
 			case "userId":
 				return ec.fieldContext_User_userId(ctx, field)
+			case "avatar":
+				return ec.fieldContext_User_avatar(ctx, field)
 			case "firstName":
 				return ec.fieldContext_User_firstName(ctx, field)
 			case "lastName":
@@ -1420,50 +1357,6 @@ func (ec *executionContext) fieldContext_User__id(ctx context.Context, field gra
 	return fc, nil
 }
 
-func (ec *executionContext) _User_avatar(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_User_avatar(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Avatar, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_User_avatar(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "User",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _User_userId(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_User_userId(ctx, field)
 	if err != nil {
@@ -1508,6 +1401,47 @@ func (ec *executionContext) fieldContext_User_userId(ctx context.Context, field 
 	return fc, nil
 }
 
+func (ec *executionContext) _User_avatar(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_avatar(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Avatar, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_avatar(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _User_firstName(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_User_firstName(ctx, field)
 	if err != nil {
@@ -1529,14 +1463,11 @@ func (ec *executionContext) _User_firstName(ctx context.Context, field graphql.C
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_User_firstName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1573,14 +1504,11 @@ func (ec *executionContext) _User_lastName(ctx context.Context, field graphql.Co
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_User_lastName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3583,53 +3511,6 @@ func (ec *executionContext) unmarshalInputNewTolpi(ctx context.Context, obj inte
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputNewUser(ctx context.Context, obj interface{}) (model.NewUser, error) {
-	var it model.NewUser
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"avatar", "firstName", "lastName"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "avatar":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("avatar"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Avatar = data
-		case "firstName":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("firstName"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.FirstName = data
-		case "lastName":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastName"))
-			data, err := ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.LastName = data
-		}
-	}
-
-	return it, nil
-}
-
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -3890,26 +3771,17 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "avatar":
-			out.Values[i] = ec._User_avatar(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		case "userId":
 			out.Values[i] = ec._User_userId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "avatar":
+			out.Values[i] = ec._User_avatar(ctx, field, obj)
 		case "firstName":
 			out.Values[i] = ec._User_firstName(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		case "lastName":
 			out.Values[i] = ec._User_lastName(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
 		case "country":
 			out.Values[i] = ec._User_country(ctx, field, obj)
 		case "status":
@@ -4314,11 +4186,6 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 
 func (ec *executionContext) unmarshalNNewTolpi2githubᚗcomᚋtarkueᚋtolpiᚑbackendᚋgraphᚋmodelᚐNewTolpi(ctx context.Context, v interface{}) (model.NewTolpi, error) {
 	res, err := ec.unmarshalInputNewTolpi(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNNewUser2githubᚗcomᚋtarkueᚋtolpiᚑbackendᚋgraphᚋmodelᚐNewUser(ctx context.Context, v interface{}) (model.NewUser, error) {
-	res, err := ec.unmarshalInputNewUser(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 

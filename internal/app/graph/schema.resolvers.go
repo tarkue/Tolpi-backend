@@ -17,9 +17,9 @@ var db = database.New()
 var ActualTolpi = &model.Tolpi{}
 
 // CreateUser is the resolver for the createUser field.
-func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (*model.User, error) {
+func (r *mutationResolver) CreateUser(ctx context.Context) (*model.User, error) {
 	userId := usercontext.ForContext(ctx).ID
-	User := db.CreateUser(&input, userId)
+	User := db.CreateUser(userId)
 
 	return User, nil
 }
@@ -53,8 +53,9 @@ func (r *queryResolver) User(ctx context.Context, userID string) (*model.User, e
 }
 
 // Tolpies is the resolver for the Tolpies field.
-func (r *subscriptionResolver) Tolpies(ctx context.Context, userID string) (<-chan []*model.Tolpi, error) {
+func (r *subscriptionResolver) Tolpies(ctx context.Context) (<-chan []*model.Tolpi, error) {
 	ch := make(chan []*model.Tolpi)
+	userID := usercontext.ForContext(ctx).ID
 
 	var usersId []string
 	users := db.GetSubscribes(userID)

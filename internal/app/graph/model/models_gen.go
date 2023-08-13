@@ -7,12 +7,6 @@ type NewTolpi struct {
 	Country string `json:"country"`
 }
 
-type NewUser struct {
-	Avatar    string `json:"avatar"`
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
-}
-
 type Tolpi struct {
 	ID        string `json:"_id"`
 	Text      string `json:"text"`
@@ -23,10 +17,10 @@ type Tolpi struct {
 
 type User struct {
 	ID          string   `json:"_id"`
-	Avatar      string   `json:"avatar"`
 	UserID      string   `json:"userId"`
-	FirstName   string   `json:"firstName"`
-	LastName    string   `json:"lastName"`
+	Avatar      *string  `json:"avatar,omitempty"`
+	FirstName   *string  `json:"firstName,omitempty"`
+	LastName    *string  `json:"lastName,omitempty"`
 	Country     *string  `json:"country,omitempty"`
 	Status      *string  `json:"status,omitempty"`
 	Tolpies     []*Tolpi `json:"tolpies,omitempty"`

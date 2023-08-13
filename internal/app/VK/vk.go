@@ -9,20 +9,23 @@ import (
 	"github.com/tarkue/tolpi-backend/config"
 )
 
-type UserGet struct {
-	Response []struct {
-		ID              int    `json:"id"`
-		Status          string `json:"status"`
-		FirstName       string `json:"first_name"`
-		LastName        string `json:"last_name"`
-		CanAccessClosed bool   `json:"can_access_closed"`
-		IsClosed        bool   `json:"is_closed"`
-	} `json:"response"`
+type UserGetResponse struct {
+	ID              int    `json:"id"`
+	Status          string `json:"status"`
+	Photo           string `json:"photo_100"`
+	FirstName       string `json:"first_name"`
+	LastName        string `json:"last_name"`
+	CanAccessClosed bool   `json:"can_access_closed"`
+	IsClosed        bool   `json:"is_closed"`
 }
 
-func GetUserStatus(userId string) *string {
+type UserGet struct {
+	Response []UserGetResponse `json:"response"`
+}
 
-	link := config.VkApiLink + config.VkUsersGetMethod + "?" + `access_token=` + config.VkServiceToken + `&user_ids=` + userId + `&fields=status&v=5.131`
+func GetUserVK(userId string) *UserGetResponse {
+
+	link := config.VkApiLink + config.VkUsersGetMethod + "?" + `access_token=` + config.VkServiceToken + `&user_ids=` + userId + `&fields=status,photo_100&v=5.131`
 
 	resp, err := http.Get(link)
 	if err != nil {
@@ -36,6 +39,6 @@ func GetUserStatus(userId string) *string {
 	var response = UserGet{}
 	json.Unmarshal(body, &response)
 
-	return &response.Response[0].Status
+	return &response.Response[0]
 
 }
