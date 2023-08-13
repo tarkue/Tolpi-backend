@@ -45,7 +45,6 @@ func New() (*App, error) {
 
 	a.echo.GET("/getCountry", a.e.GetCountry)
 
-	a.echo.GET("/checkSubscribe", a.e.CheckSubscribe)
 	a.echo.POST("/subscribe", a.e.Subscribe)
 	a.echo.POST("/unsubscribe", a.e.Unsubscribe)
 

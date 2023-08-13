@@ -48,21 +48,6 @@ func (e *Endpoint) GetCountry(ctx echo.Context) error {
 	return nil
 }
 
-func (e *Endpoint) CheckSubscribe(ctx echo.Context) error {
-	if ctx.QueryParams().Has(subIdParam) {
-		ctx.String(http.StatusOK, notFoundMessage+subIdParam)
-		return nil
-	}
-
-	userId := e.s.GetUserId(ctx)
-	subId := ctx.QueryParam(subIdParam)
-	user := e.db.FindUserById(subId)
-
-	ctx.JSON(http.StatusOK, e.s.Contains(user.TrackerList, userId))
-
-	return nil
-}
-
 func (e *Endpoint) Subscribe(ctx echo.Context) error {
 	if !ctx.QueryParams().Has(subIdParam) {
 		ctx.String(http.StatusOK, notFoundMessage+subIdParam)
@@ -72,6 +57,11 @@ func (e *Endpoint) Subscribe(ctx echo.Context) error {
 	userId := e.s.GetUserId(ctx)
 	subId := ctx.QueryParam(subIdParam)
 	user := e.db.FindUserById(subId)
+
+	if e.s.Contains(user.TrackerList, userId) {
+		ctx.JSON(http.StatusOK, true)
+		return nil
+	}
 
 	NewSlice := append(user.TrackerList, userId)
 	e.db.UpdateUserTrackers(subId, NewSlice)
@@ -89,6 +79,11 @@ func (e *Endpoint) Unsubscribe(ctx echo.Context) error {
 	userId := e.s.GetUserId(ctx)
 	unsubId := ctx.QueryParam(unSubIdParam)
 	user := e.db.FindUserById(unsubId)
+
+	if !e.s.Contains(user.TrackerList, userId) {
+		ctx.JSON(http.StatusOK, true)
+		return nil
+	}
 
 	NewSlice := e.s.RemoveIndex(user.TrackerList, e.s.IndexOf(userId, user.TrackerList))
 	e.db.UpdateUserTrackers(unsubId, NewSlice)
