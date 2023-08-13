@@ -38,11 +38,11 @@ func New() (*App, error) {
 
 	a.echo = echo.New()
 
-        a.echo.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+	a.echo.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, "Authorization"},
 	}), a.middleware.Authorization)
-	a.echo.GET("/getStatus", a.e.GetStatus)
+
 	a.echo.GET("/getCountry", a.e.GetCountry)
 
 	a.echo.GET("/checkSubscribe", a.e.CheckSubscribe)

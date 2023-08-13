@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/tarkue/tolpi-backend/config"
+	vk "github.com/tarkue/tolpi-backend/internal/app/VK"
 	"github.com/tarkue/tolpi-backend/internal/app/graph/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -148,7 +149,10 @@ func (db *DB) FindUserById(userID string) *model.User {
 	defer cancel()
 	res := collection.FindOne(ctx, bson.M{"userid": userID})
 
-	user := model.User{}
+	user := model.User{
+		Status:  vk.GetUserStatus(userID),
+		Tolpies: db.GetUserTolpiesList(userID),
+	}
 	res.Decode(&user)
 
 	return &user
@@ -203,4 +207,29 @@ func (db *DB) GetSubscribes(userID string) []*model.User {
 	}
 
 	return users
+}
+
+func (db *DB) GetUserTolpiesList(userID string) []*model.Tolpi {
+	collection := db.client.Database("Tolpi").Collection("Tolpies")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	res, err := collection.Find(ctx, bson.M{"user": bson.M{"userid": userID}})
+	if err != nil {
+		log.Fatal(err)
+		return nil
+	}
+
+	var tolpies []*model.Tolpi
+	for res.Next(ctx) {
+		var tolpi *model.Tolpi
+
+		err = res.Decode(&tolpi)
+		if err != nil {
+			log.Fatal(err)
+		}
+		tolpies = append(tolpies, tolpi)
+	}
+
+	return tolpies
 }

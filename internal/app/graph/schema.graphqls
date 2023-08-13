@@ -14,6 +14,8 @@ type User {
   firstName: String!
   lastName: String!
   country: String
+  status: String
+  tolpies: [Tolpi!]
   trackerList: [String!]
 }
 

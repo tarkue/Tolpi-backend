@@ -2,7 +2,6 @@ package endpoint
 
 import (
 	"io"
-	"log"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -32,25 +31,6 @@ func New(db DataBase, s Service) *Endpoint {
 		db: db,
 		s:  s,
 	}
-}
-
-func (e *Endpoint) GetStatus(ctx echo.Context) error {
-	userId := e.s.GetUserId(ctx)
-
-	link := config.VkApiLink + config.VkUsersGetMethod + "?" + `access_token=` + config.VkServiceToken + `&user_ids=` + userId + `&fields=status&v=5.131`
-
-	resp, err := http.Get(link)
-	if err != nil {
-		return err
-	}
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-	log.Print(link)
-
-	ctx.JSON(http.StatusOK, string(body))
-	return nil
 }
 
 func (e *Endpoint) GetCountry(ctx echo.Context) error {

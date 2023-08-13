@@ -28,5 +28,7 @@ type User struct {
 	FirstName   string   `json:"firstName"`
 	LastName    string   `json:"lastName"`
 	Country     *string  `json:"country,omitempty"`
+	Status      *string  `json:"status,omitempty"`
+	Tolpies     []*Tolpi `json:"tolpies,omitempty"`
 	TrackerList []string `json:"trackerList,omitempty"`
 }

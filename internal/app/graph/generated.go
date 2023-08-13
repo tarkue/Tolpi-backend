@@ -76,6 +76,8 @@ type ComplexityRoot struct {
 		FirstName   func(childComplexity int) int
 		ID          func(childComplexity int) int
 		LastName    func(childComplexity int) int
+		Status      func(childComplexity int) int
+		Tolpies     func(childComplexity int) int
 		TrackerList func(childComplexity int) int
 		UserID      func(childComplexity int) int
 	}
@@ -250,6 +252,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.LastName(childComplexity), true
+
+	case "User.status":
+		if e.complexity.User.Status == nil {
+			break
+		}
+
+		return e.complexity.User.Status(childComplexity), true
+
+	case "User.tolpies":
+		if e.complexity.User.Tolpies == nil {
+			break
+		}
+
+		return e.complexity.User.Tolpies(childComplexity), true
 
 	case "User.trackerList":
 		if e.complexity.User.TrackerList == nil {
@@ -602,6 +618,10 @@ func (ec *executionContext) fieldContext_Mutation_createUser(ctx context.Context
 				return ec.fieldContext_User_lastName(ctx, field)
 			case "country":
 				return ec.fieldContext_User_country(ctx, field)
+			case "status":
+				return ec.fieldContext_User_status(ctx, field)
+			case "tolpies":
+				return ec.fieldContext_User_tolpies(ctx, field)
 			case "trackerList":
 				return ec.fieldContext_User_trackerList(ctx, field)
 			}
@@ -673,6 +693,10 @@ func (ec *executionContext) fieldContext_Mutation_setCountry(ctx context.Context
 				return ec.fieldContext_User_lastName(ctx, field)
 			case "country":
 				return ec.fieldContext_User_country(ctx, field)
+			case "status":
+				return ec.fieldContext_User_status(ctx, field)
+			case "tolpies":
+				return ec.fieldContext_User_tolpies(ctx, field)
 			case "trackerList":
 				return ec.fieldContext_User_trackerList(ctx, field)
 			}
@@ -878,6 +902,10 @@ func (ec *executionContext) fieldContext_Query_User(ctx context.Context, field g
 				return ec.fieldContext_User_lastName(ctx, field)
 			case "country":
 				return ec.fieldContext_User_country(ctx, field)
+			case "status":
+				return ec.fieldContext_User_status(ctx, field)
+			case "tolpies":
+				return ec.fieldContext_User_tolpies(ctx, field)
 			case "trackerList":
 				return ec.fieldContext_User_trackerList(ctx, field)
 			}
@@ -1291,6 +1319,10 @@ func (ec *executionContext) fieldContext_Tolpi_user(ctx context.Context, field g
 				return ec.fieldContext_User_lastName(ctx, field)
 			case "country":
 				return ec.fieldContext_User_country(ctx, field)
+			case "status":
+				return ec.fieldContext_User_status(ctx, field)
+			case "tolpies":
+				return ec.fieldContext_User_tolpies(ctx, field)
 			case "trackerList":
 				return ec.fieldContext_User_trackerList(ctx, field)
 			}
@@ -1600,6 +1632,100 @@ func (ec *executionContext) fieldContext_User_country(ctx context.Context, field
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _User_status(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _User_tolpies(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_User_tolpies(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Tolpies, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Tolpi)
+	fc.Result = res
+	return ec.marshalOTolpi2ᚕᚖgithubᚗcomᚋtarkueᚋtolpiᚑbackendᚋgraphᚋmodelᚐTolpiᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_User_tolpies(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "User",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "_id":
+				return ec.fieldContext_Tolpi__id(ctx, field)
+			case "text":
+				return ec.fieldContext_Tolpi_text(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_Tolpi_timestamp(ctx, field)
+			case "user":
+				return ec.fieldContext_Tolpi_user(ctx, field)
+			case "country":
+				return ec.fieldContext_Tolpi_country(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Tolpi", field.Name)
 		},
 	}
 	return fc, nil
@@ -3786,6 +3912,10 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "country":
 			out.Values[i] = ec._User_country(ctx, field, obj)
+		case "status":
+			out.Values[i] = ec._User_status(ctx, field, obj)
+		case "tolpies":
+			out.Values[i] = ec._User_tolpies(ctx, field, obj)
 		case "trackerList":
 			out.Values[i] = ec._User_trackerList(ctx, field, obj)
 		default:
@@ -4610,6 +4740,53 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	}
 	res := graphql.MarshalString(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOTolpi2ᚕᚖgithubᚗcomᚋtarkueᚋtolpiᚑbackendᚋgraphᚋmodelᚐTolpiᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Tolpi) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNTolpi2ᚖgithubᚗcomᚋtarkueᚋtolpiᚑbackendᚋgraphᚋmodelᚐTolpi(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {
