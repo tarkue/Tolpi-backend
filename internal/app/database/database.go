@@ -66,6 +66,8 @@ func (db *DB) CreateUser(input *model.NewUser, userId string) *model.User {
 
 		res = collection.FindOne(ctx, bson.M{"userid": userId})
 		res.Decode(&findResult)
+		findResult.Status = vk.GetUserStatus(userId)
+		findResult.Tolpies = db.GetUserTolpiesList(userId)
 
 		return findResult
 
@@ -78,6 +80,7 @@ func (db *DB) CreateUser(input *model.NewUser, userId string) *model.User {
 		LastName:    input.LastName,
 		TrackerList: []string{},
 		Status:      vk.GetUserStatus(userId),
+		Tolpies:     db.GetUserTolpiesList(userId),
 	}
 
 	_, err := collection.InsertOne(ctx, user)
@@ -150,11 +153,10 @@ func (db *DB) FindUserById(userID string) *model.User {
 	defer cancel()
 	res := collection.FindOne(ctx, bson.M{"userid": userID})
 
-	user := model.User{
-		Status:  vk.GetUserStatus(userID),
-		Tolpies: db.GetUserTolpiesList(userID),
-	}
+	user := model.User{}
 	res.Decode(&user)
+	user.Status = vk.GetUserStatus(userID)
+	user.Tolpies = db.GetUserTolpiesList(userID)
 
 	return &user
 }
@@ -215,7 +217,7 @@ func (db *DB) GetUserTolpiesList(userID string) []*model.Tolpi {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	res, err := collection.Find(ctx, bson.M{"user": bson.M{"userid": userID}})
+	res, err := collection.Find(ctx, bson.M{"user.userid": userID})
 	if err != nil {
 		log.Fatal(err)
 		return nil
@@ -231,6 +233,8 @@ func (db *DB) GetUserTolpiesList(userID string) []*model.Tolpi {
 		}
 		tolpies = append(tolpies, tolpi)
 	}
+
+	log.Print(tolpies)
 
 	return tolpies
 }
