@@ -77,6 +77,7 @@ func (db *DB) CreateUser(input *model.NewUser, userId string) *model.User {
 		FirstName:   input.FirstName,
 		LastName:    input.LastName,
 		TrackerList: []string{},
+		Status:      vk.GetUserStatus(userId),
 	}
 
 	_, err := collection.InsertOne(ctx, user)
