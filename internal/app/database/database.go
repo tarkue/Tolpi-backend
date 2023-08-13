@@ -217,7 +217,8 @@ func (db *DB) GetUserTolpiesList(userID string) []*model.Tolpi {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	res, err := collection.Find(ctx, bson.M{"user.userid": userID})
+	opts := options.Find().SetSort(bson.M{"$natural": -1})
+	res, err := collection.Find(ctx, bson.M{"user.userid": userID}, opts)
 	if err != nil {
 		log.Fatal(err)
 		return nil
