@@ -27,7 +27,7 @@ func New() *Service {
 }
 
 func (service *Service) GetUserId(c echo.Context) string {
-	clientUrl := c.Request().Header.Get("Authorization")
+	clientUrl := c.Request().URL.String()
 	clientUrls := strings.Split(clientUrl, "vk_user_id=")
 	userId := strings.Split(clientUrls[1], "&")[0]
 	return userId

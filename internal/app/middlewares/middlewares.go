@@ -23,11 +23,7 @@ func New(s *service.Service) *Middlewares {
 func (mw *Middlewares) Authorization(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 
-		clientUrl := c.Request().Header.Get(AuthHeader)
-		if clientUrl == "" {
-			c.String(http.StatusOK, AuthError)
-			return nil
-		}
+		clientUrl := c.Request().URL.String()
 
 		if err := mw.s.VerifyLaunchParams(clientUrl, config.SecretKey); err == nil {
 			ctx := context.WithValue(c.Request().Context(),
