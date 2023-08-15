@@ -2,8 +2,10 @@ package middlewares
 
 import (
 	"context"
+	"log"
 	"net/http"
 
+	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 	"github.com/tarkue/tolpi-backend/config"
 	"github.com/tarkue/tolpi-backend/internal/app/service"
@@ -31,6 +33,14 @@ func (mw *Middlewares) Authorization(next echo.HandlerFunc) echo.HandlerFunc {
 					ID: mw.s.GetUserId(c),
 				})
 			c.SetRequest(c.Request().WithContext(ctx))
+
+			var upgrader = websocket.Upgrader{}
+			upgrader.CheckOrigin = func(r *http.Request) bool { return true }
+			_, err := upgrader.Upgrade(c.Response().Writer, c.Request(), nil)
+			if err != nil {
+				log.Print(err)
+			}
+
 			next(c)
 			return nil
 
