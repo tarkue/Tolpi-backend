@@ -2,13 +2,11 @@ package app
 
 import (
 	"log"
-	"net/http"
 	"time"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
@@ -44,7 +42,7 @@ func New() (*App, error) {
 
 	a.echo.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins:     []string{"*"},
-		AllowHeaders:     []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+		AllowHeaders:     []string{"*"},
 		AllowCredentials: true,
 	}), a.middleware.Authorization)
 
@@ -54,14 +52,9 @@ func New() (*App, error) {
 	a.echo.POST("/unsubscribe", a.e.Unsubscribe)
 
 	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
-	srv.AddTransport(transport.POST{})
+
 	srv.AddTransport(transport.Websocket{
 		KeepAlivePingInterval: 10 * time.Second,
-		Upgrader: websocket.Upgrader{
-			CheckOrigin: func(r *http.Request) bool {
-				return true
-			},
-		},
 	})
 
 	a.echo.GET("/", echo.WrapHandler(playground.Handler("GraphQL playground", "/query")))
