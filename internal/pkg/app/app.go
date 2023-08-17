@@ -2,9 +2,13 @@ package app
 
 import (
 	"log"
+	"net/http"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/gorilla/websocket"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
@@ -28,14 +32,12 @@ func New() (*App, error) {
 	a := &App{}
 
 	a.s = service.New()
-	DataBase := database.New()
 
+	DataBase := database.New()
 	a.db = DataBase
 
 	a.middleware = middlewares.New(a.s)
-
 	a.e = endpoint.New(a.db, a.s)
-
 	a.echo = echo.New()
 
 	a.echo.Use(middleware.Logger())
@@ -44,14 +46,27 @@ func New() (*App, error) {
 		AllowHeaders:     []string{"*"},
 		AllowMethods:     []string{"*"},
 		AllowCredentials: true,
-	}), a.middleware.Authorization)
+	}))
+	a.echo.Use(a.middleware.Authorization)
 
 	a.echo.GET("/getCountry", a.e.GetCountry)
 
 	a.echo.POST("/subscribe", a.e.Subscribe)
 	a.echo.POST("/unsubscribe", a.e.Unsubscribe)
 
-	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
+	srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
+
+	srv.AddTransport(transport.POST{})
+	srv.AddTransport(transport.Websocket{
+		KeepAlivePingInterval: 10 * time.Second,
+		Upgrader: websocket.Upgrader{
+			CheckOrigin: func(r *http.Request) bool {
+				return true
+			},
+			ReadBufferSize:  1024,
+			WriteBufferSize: 1024,
+		},
+	})
 
 	a.echo.GET("/", echo.WrapHandler(playground.Handler("GraphQL playground", "/query")))
 	a.echo.Any("/query", echo.WrapHandler(srv))
