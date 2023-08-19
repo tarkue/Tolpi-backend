@@ -49,8 +49,6 @@ func New() (*App, error) {
 	}))
 	a.echo.Use(a.middleware.Authorization)
 
-	a.echo.GET("/getCountry", a.e.GetCountry)
-
 	a.echo.POST("/subscribe", a.e.Subscribe)
 	a.echo.POST("/unsubscribe", a.e.Unsubscribe)
 

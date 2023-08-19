@@ -1,11 +1,9 @@
 package endpoint
 
 import (
-	"io"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/tarkue/tolpi-backend/config"
 	"github.com/tarkue/tolpi-backend/internal/app/graph/model"
 )
 
@@ -31,21 +29,6 @@ func New(db DataBase, s Service) *Endpoint {
 		db: db,
 		s:  s,
 	}
-}
-
-func (e *Endpoint) GetCountry(ctx echo.Context) error {
-
-	resp, err := http.Get(config.CountriesApi)
-	if err != nil {
-		return err
-	}
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-
-	ctx.String(http.StatusOK, string(body))
-	return nil
 }
 
 func (e *Endpoint) Subscribe(ctx echo.Context) error {
