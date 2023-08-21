@@ -18,7 +18,7 @@ type DB struct {
 }
 
 func New() *DB {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
 	credential := options.Credential{
@@ -38,7 +38,7 @@ func New() *DB {
 func (db *DB) CreateUser(userId string) *model.User {
 	collection := db.client.Database("Tolpi").Collection("Users")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
 	var findResult *model.User
@@ -48,9 +48,7 @@ func (db *DB) CreateUser(userId string) *model.User {
 
 	if res.Err() == nil {
 		res.Decode(&findResult)
-
 		return findResult
-
 	}
 
 	user := &model.User{
@@ -76,7 +74,7 @@ func (db *DB) CreateTolpi(input *model.NewTolpi, userId string) *model.Tolpi {
 	collection := db.client.Database("Tolpi").Collection("Tolpies")
 	collectionUsers := db.client.Database("Tolpi").Collection("Users")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
 	findRes := collectionUsers.FindOne(ctx, bson.M{"userid": userId})
@@ -101,7 +99,7 @@ func (db *DB) CreateTolpi(input *model.NewTolpi, userId string) *model.Tolpi {
 func (db *DB) UpdateUserCountry(userID string, country string) *model.User {
 	collection := db.client.Database("Tolpi").Collection("Users")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 	_, err := collection.UpdateOne(ctx, bson.M{"userid": userID}, bson.M{"$set": bson.M{"country": country}})
 	if err != nil {
@@ -119,7 +117,7 @@ func (db *DB) UpdateUserCountry(userID string, country string) *model.User {
 func (db *DB) UpdateUserTrackers(userID string, trackers []string) {
 	collection := db.client.Database("Tolpi").Collection("Users")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 	_, err := collection.UpdateOne(ctx, bson.M{"userid": userID}, bson.M{"$set": bson.M{"trackerlist": trackers}})
 	if err != nil {
@@ -129,7 +127,7 @@ func (db *DB) UpdateUserTrackers(userID string, trackers []string) {
 func (db *DB) FindUserById(userID string) *model.User {
 	collection := db.client.Database("Tolpi").Collection("Users")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 	res := collection.FindOne(ctx, bson.M{"userid": userID})
 
@@ -147,7 +145,7 @@ func (db *DB) FindUserById(userID string) *model.User {
 func (db *DB) GetLastTolpies(country string) []*model.Tolpi {
 	collection := db.client.Database("Tolpi").Collection("Tolpies")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 	opts := options.Find().SetLimit(80).SetSort(bson.M{"$natural": -1})
 
@@ -173,7 +171,7 @@ func (db *DB) GetLastTolpies(country string) []*model.Tolpi {
 func (db *DB) GetSubscribes(userID string) []*model.User {
 	collection := db.client.Database("Tolpi").Collection("Users")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 	res, err := collection.Find(ctx, bson.M{"trackerlist": userID})
 	if err != nil {
@@ -198,7 +196,7 @@ func (db *DB) GetSubscribes(userID string) []*model.User {
 func (db *DB) GetUserTolpiesList(userID string) []*model.Tolpi {
 	collection := db.client.Database("Tolpi").Collection("Tolpies")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 	opts := options.Find().SetSort(bson.M{"$natural": -1})
 	res, err := collection.Find(ctx, bson.M{"user.userid": userID}, opts)

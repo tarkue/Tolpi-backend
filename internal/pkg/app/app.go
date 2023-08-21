@@ -40,6 +40,7 @@ func New() (*App, error) {
 	a.e = endpoint.New(a.db, a.s)
 	a.echo = echo.New()
 
+	a.echo.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(20)))
 	a.echo.Use(middleware.Logger())
 	a.echo.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins:     []string{"*"},
@@ -61,8 +62,6 @@ func New() (*App, error) {
 			CheckOrigin: func(r *http.Request) bool {
 				return true
 			},
-			ReadBufferSize:  1024,
-			WriteBufferSize: 1024,
 		},
 	})
 
