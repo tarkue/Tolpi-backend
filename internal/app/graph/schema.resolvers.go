@@ -6,9 +6,11 @@ package graph
 
 import (
 	"context"
+	"errors"
 
 	"github.com/tarkue/tolpi-backend/internal/app/database"
 	"github.com/tarkue/tolpi-backend/internal/app/graph/model"
+	tolpicheckvalid "github.com/tarkue/tolpi-backend/internal/app/tolpiCheckValid"
 	usercontext "github.com/tarkue/tolpi-backend/internal/app/userContext"
 )
 
@@ -34,11 +36,14 @@ func (r *mutationResolver) SetCountry(ctx context.Context, country string) (*mod
 // CreateTolpi is the resolver for the createTolpi field.
 func (r *mutationResolver) CreateTolpi(ctx context.Context, input model.NewTolpi) (*model.Tolpi, error) {
 	user := usercontext.ForContext(ctx)
-	tolpi := db.CreateTolpi(&input, user.ID)
+	if tolpicheckvalid.CheckTolpiValid(&input.Text) {
+		tolpi := db.CreateTolpi(&input, user.ID)
+		ActualTolpi = tolpi
+		return tolpi, nil
+	} else {
+		return nil, errors.New("Not matched Link")
+	}
 
-	ActualTolpi = tolpi
-
-	return tolpi, nil
 }
 
 // Tolpies is the resolver for the Tolpies field.
